@@ -15,21 +15,22 @@ const State = {
 
     async init() {
         try {
-            const response = await fetch('database.json');
+            // Force cache refresh to get the latest products
+            const response = await fetch('database.json?v=' + Date.now());
             if (response.ok) {
                 const data = await response.json();
                 
-                // If localStorage is empty, use file data
-                if (this.products.length === 0) {
-                    this.products = data.products || [];
+                if (data.products && data.products.length > 0) {
+                    this.products = data.products;
                     this.categories = data.categories || [];
-                    this.save();
+                    // We don't necessarily save to localStorage here to avoid 
+                    // overwriting admin's local drafts if they are working on them,
+                    // but for regular users, this is the data they see.
+                    console.log("Données chargées avec succès depuis le serveur.");
                 }
-                
-                console.log("Données chargées depuis le fichier JSON.");
             }
         } catch (e) {
-            console.log("Aucun fichier database.json trouvé ou erreur de chargement. Utilisation du stockage local.");
+            console.log("Mode local : Aucun fichier database.json trouvé.");
         }
     },
 

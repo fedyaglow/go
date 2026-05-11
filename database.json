@@ -1,0 +1,65 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "Parfums"
+    },
+    {
+      "id": 2,
+      "name": "Soins de la peau"
+    },
+    {
+      "id": 3,
+      "name": "Maquillage"
+    }
+  ],
+  "products": [
+    {
+      "id": 101,
+      "name": "Parfum Élégance",
+      "code": "P-ELG",
+      "categoryId": 1,
+      "description": "Un parfum envoûtant pour vos soirées spéciales. Notes florales et boisées.",
+      "sizes": [
+        {
+          "size": "50ml",
+          "price": "45.00",
+          "image": "products/10.webp"
+        },
+        {
+          "size": "100ml",
+          "price": "75.00",
+          "image": "products/12.webp"
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "name": "Crème Hydratante Bio",
+      "code": "S-HYD",
+      "categoryId": 2,
+      "description": "Hydratation intense 24h pour tous types de peaux. Ingrédients 100% naturels.",
+      "sizes": [
+        {
+          "size": "Standard",
+          "price": "29.99",
+          "image": "products/6.webp"
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "name": "Sérum Éclat",
+      "code": "S-ECL",
+      "categoryId": 2,
+      "description": "Redonnez de l'éclat à votre visage avec notre sérum riche en Vitamine C.",
+      "sizes": [
+        {
+          "size": "30ml",
+          "price": "39.00",
+          "image": "products/7.webp"
+        }
+      ]
+    }
+  ]
+}
