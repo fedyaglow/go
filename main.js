@@ -207,12 +207,15 @@ function renderProducts() {
         return `
             <div class="product-card" data-product-id="${product.id}">
                 <div class="product-image-container">
-                    <img src="${defaultSize.image}" class="product-image" id="prod-img-${product.id}">
+                    <img src="${defaultSize.image}" class="product-image" id="prod-img-${product.id}" loading="lazy">
                 </div>
                 <div class="product-info">
-                    <div class="product-category">${categoryName}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div class="product-category">${categoryName}</div>
+                        <div class="product-code" style="font-size: 0.75rem; background: var(--gray-200); padding: 2px 8px; border-radius: 4px; font-weight: 600; color: var(--gray-600);">${product.code}</div>
+                    </div>
                     <h3 class="product-title">${product.name}</h3>
-                    <p class="product-description" style="font-size: 0.85rem; color: #666; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${product.description || ''}</p>
+                    <p class="product-description">${product.description || ''}</p>
                     <div class="product-price" id="prod-price-${product.id}">${formatPrice(defaultSize.price)}</div>
                     
                     <div class="size-selector">
@@ -226,7 +229,7 @@ function renderProducts() {
                     
                     <button class="add-to-cart-btn" onclick="addToCart(${product.id}, getSelectedSizeIndex(${product.id}))">
                         <span>Ajouter au panier</span>
-                        🛒
+                        <i class="fa-solid fa-cart-plus"></i>
                     </button>
                 </div>
             </div>
@@ -248,10 +251,21 @@ function updateProductDisplay(productId, sizeIndex) {
 
 function getSelectedSizeIndex(productId) {
     const container = document.querySelector(`.product-card[data-product-id="${productId}"]`);
+    if (!container) return 0;
     const activeBtn = container.querySelector('.size-btn.active');
     const buttons = Array.from(container.querySelectorAll('.size-btn'));
     return buttons.indexOf(activeBtn);
 }
+
+// Navbar Scroll Effect
+window.addEventListener('scroll', () => {
+    const navbar = document.querySelector('.navbar');
+    if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+    } else {
+        navbar.classList.remove('scrolled');
+    }
+});
 
 // --- Admin Logic ---
 function adminRenderCategories() {
@@ -408,6 +422,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (document.getElementById('products-grid')) {
         renderCategories();
         renderProducts();
+        
+        // Search Logic
+        const searchInput = document.getElementById('productSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const filtered = State.products.filter(p => 
+                    p.name.toLowerCase().includes(searchTerm) || 
+                    (p.description && p.description.toLowerCase().includes(searchTerm)) ||
+                    p.code.toLowerCase().includes(searchTerm)
+                );
+                renderFilteredProducts(filtered);
+            });
+        }
     }
     if (document.getElementById('admin-cats-list')) {
         adminRenderCategories();
@@ -431,3 +459,49 @@ document.addEventListener('DOMContentLoaded', async () => {
         addVariantField();
     }
 });
+
+function renderFilteredProducts(filtered) {
+    const container = document.getElementById('products-grid');
+    if (!container) return;
+    
+    if (filtered.length === 0) {
+        container.innerHTML = `<div class="col-12 text-center py-5"><h4>Aucun produit ne correspond à votre recherche.</h4></div>`;
+        return;
+    }
+    
+    container.innerHTML = filtered.map(product => {
+        const defaultSize = product.sizes[0] || { size: 'N/A', price: 0, image: '' };
+        const categoryName = State.categories.find(c => c.id == product.categoryId)?.name || 'Général';
+        
+        return `
+            <div class="product-card" data-product-id="${product.id}">
+                <div class="product-image-container">
+                    <img src="${defaultSize.image}" class="product-image" id="prod-img-${product.id}" loading="lazy">
+                </div>
+                <div class="product-info">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div class="product-category">${categoryName}</div>
+                        <div class="product-code" style="font-size: 0.75rem; background: var(--gray-200); padding: 2px 8px; border-radius: 4px; font-weight: 600; color: var(--gray-600);">${product.code}</div>
+                    </div>
+                    <h3 class="product-title">${product.name}</h3>
+                    <p class="product-description">${product.description || ''}</p>
+                    <div class="product-price" id="prod-price-${product.id}">${formatPrice(defaultSize.price)}</div>
+                    
+                    <div class="size-selector">
+                        ${product.sizes.map((s, idx) => `
+                            <button class="size-btn ${idx === 0 ? 'active' : ''}" 
+                                onclick="updateProductDisplay(${product.id}, ${idx})">
+                                ${s.size}
+                            </button>
+                        `).join('')}
+                    </div>
+                    
+                    <button class="add-to-cart-btn" onclick="addToCart(${product.id}, getSelectedSizeIndex(${product.id}))">
+                        <span>Ajouter au panier</span>
+                        <i class="fa-solid fa-cart-plus"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}

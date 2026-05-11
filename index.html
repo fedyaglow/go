@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fedya Glow - Découvrez notre sélection exclusive de produits de beauté premium. Parfums, soins et cosmétiques pour sublimer votre éclat naturel.">
+    <meta name="keywords" content="beauté, cosmétiques, parfums, soins de la peau, Fedya Glow, boutique beauté">
+    <meta name="author" content="Fedya Glow">
+    <meta property="og:title" content="Fedya Glow | Votre Beauté, Notre Priorité">
+    <meta property="og:description" content="Découvrez le secret de votre éclat naturel avec nos produits de beauté sélectionnés avec soin.">
+    <meta property="og:image" content="hero-bg.png">
+    <meta property="og:url" content="https://fedyaglow.com">
     <title>Fedya Glow | Votre Beauté, Notre Priorité</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,7 +21,6 @@
             <div class="nav-links">
                 <a href="index.html" class="nav-link">Accueil</a>
                 <a href="produits.html" class="nav-link">Boutique</a>
-                <a href="admin.html" class="nav-link"></a>
                 <button class="btn-icon" onclick="toggleCart()">
                     <i class="fa-solid fa-bag-shopping"></i>
                     <span class="badge cart-count">0</span>
@@ -24,49 +30,51 @@
     </nav>
 
     <main>
-        <!-- Hero Section with Ken Burns Animation -->
+        <!-- Hero Section -->
         <section class="hero">
             <div class="hero-bg" style="background-image: url('hero-bg.png');"></div>
             <div class="container">
                 <div class="hero-content">
-                    <h1>Découvrez le secret de votre éclat naturel</h1>
-                    <p>Les meilleurs produits de beauté sélectionnés avec soin pour sublimer votre beauté unique.</p>
-                    <a href="produits.html" class="btn-primary" style="text-decoration: none; font-size: 1.1rem; padding: 15px 40px; display: inline-block;">Acheter Maintenant</a>
+                    <h1>Découvrez le secret de votre <span class="text-gradient" style="background: linear-gradient(135deg, #fff, #faedcd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">éclat naturel</span></h1>
+                    <p>Les meilleurs produits de beauté sélectionnés avec soin pour sublimer votre beauté unique. Une expérience sensorielle inoubliable.</p>
+                    <a href="produits.html" class="btn-primary">
+                        Explorer la Boutique
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
         </section>
 
         <!-- Features Section -->
-        <section class="container" style="padding: 100px 0; text-align: center;">
-            <h2 style="font-size: 2.5rem; margin-bottom: 50px;">Pourquoi Fedya Glow ?</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px;">
+        <section class="container" style="padding: 120px 0; text-align: center;">
+            <h2 class="text-gradient" style="font-size: 3rem; margin-bottom: 60px;">Pourquoi Choisir Fedya Glow ?</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
                 <div class="admin-card">
-                    <div style="font-size: 3rem; margin-bottom: 20px;">✨</div>
-                    <h3>Qualité Premium</h3>
-                    <p>Nous choisissons les meilleurs ingrédients et produits pour garantir les meilleurs résultats pour votre peau.</p>
+                    <div style="font-size: 3.5rem; margin-bottom: 25px;">✨</div>
+                    <h3 style="margin-bottom: 15px;">Qualité Premium</h3>
+                    <p style="color: #666;">Nous choisissons les meilleurs ingrédients et produits pour garantir les meilleurs résultats pour votre peau.</p>
                 </div>
                 <div class="admin-card">
-                    <div style="font-size: 3rem; margin-bottom: 20px;">🚚</div>
-                    <h3>Livraison Rapide</h3>
-                    <p>Nous vous livrons où que vous soyez dans les plus brefs délais et en toute sécurité.</p>
+                    <div style="font-size: 3.5rem; margin-bottom: 25px;">🚚</div>
+                    <h3 style="margin-bottom: 15px;">Livraison Rapide</h3>
+                    <p style="color: #666;">Nous vous livrons où que vous soyez dans les plus brefs délais et en toute sécurité.</p>
                 </div>
                 <div class="admin-card">
-                    <div style="font-size: 3rem; margin-bottom: 20px;">💬</div>
-                    <h3>Support Continu</h3>
-                    <p>Notre équipe est toujours disponible pour répondre à vos questions et vous aider à choisir le meilleur.</p>
+                    <div style="font-size: 3.5rem; margin-bottom: 25px;">💬</div>
+                    <h3 style="margin-bottom: 15px;">Accompagnement</h3>
+                    <p style="color: #666;">Notre équipe est toujours disponible pour vous conseiller et vous aider à choisir le meilleur pour vous.</p>
                 </div>
             </div>
         </section>
 
         <!-- Video Presentation Section -->
-        <section class="video-section">
+        <section class="video-section" style="padding: 120px 0; background: var(--gray-200);">
             <div class="container">
-                <div style="text-align: center; margin-bottom: 50px;">
-                    <h2 style="font-size: 2.5rem;">Présentation de Fedya Glow</h2>
-                    <p style="color: #666;">Découvrez notre univers et nos valeurs en vidéo.</p>
+                <div style="text-align: center; margin-bottom: 60px;">
+                    <h2 class="text-gradient" style="font-size: 3rem;">L'Univers Fedya Glow</h2>
+                    <p style="color: #666; font-size: 1.1rem;">Plongez dans notre univers et découvrez nos rituels de beauté.</p>
                 </div>
                 <div class="video-container">
-                    <!-- Placeholder Video - Replace URL with your actual presentation video -->
                     <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Présentation Fedya Glow" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
             </div>
@@ -75,15 +83,15 @@
 
     <footer class="footer">
         <div class="container footer-content">
-            <div class="logo" style="color: white; font-size: 2rem;">🌸 Fedya Glow</div>
-            <p>Suivez-nous sur nos réseaux sociaux pour ne rien rater de nos nouveautés.</p>
+            <div class="logo" style="color: white; font-size: 2.5rem;">🌸 Fedya Glow</div>
+            <p style="max-width: 600px; opacity: 0.8; font-size: 1.1rem;">Rejoignez notre communauté et sublimez votre beauté naturelle avec nos produits exclusifs.</p>
             <div class="social-links">
                 <a href="#" class="social-icon fb"><i class="fa-brands fa-facebook-f"></i></a>
                 <a href="#" class="social-icon tt"><i class="fa-brands fa-tiktok"></i></a>
                 <a href="#" class="social-icon ig"><i class="fa-brands fa-instagram"></i></a>
             </div>
             <div class="footer-bottom">
-                &copy; 2024 Fedya Glow. Tous droits réservés.
+                &copy; 2024 Fedya Glow. Créé avec passion pour votre beauté.
             </div>
         </div>
     </footer>
@@ -104,10 +112,10 @@
     <div class="cart-sidebar" id="cartSidebar">
         <div class="cart-header">
             <h3>Votre Panier 🛍️</h3>
-            <button class="btn-icon" onclick="toggleCart()" style="font-size: 1.2rem;">✕</button>
+            <button class="btn-icon" onclick="toggleCart()">✕</button>
         </div>
         <div class="cart-items" id="cart-items-container">
-            <!-- Items will be injected here -->
+            <!-- Items injected by main.js -->
         </div>
         <div class="cart-footer">
             <div class="cart-total">
@@ -115,7 +123,7 @@
                 <span id="cart-total-amount">0.00 €</span>
             </div>
             <button class="checkout-btn" onclick="sendWhatsApp()">
-                Commander via WhatsApp
+                Finaliser sur WhatsApp
                 <i class="fa-brands fa-whatsapp"></i>
             </button>
         </div>
