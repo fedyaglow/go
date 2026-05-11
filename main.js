@@ -11,6 +11,40 @@ const State = {
         localStorage.setItem('fedya_categories', JSON.stringify(this.categories));
         localStorage.setItem('fedya_products', JSON.stringify(this.products));
         localStorage.setItem('fedya_cart', JSON.stringify(this.cart));
+    },
+
+    async init() {
+        try {
+            const response = await fetch('database.json');
+            if (response.ok) {
+                const data = await response.json();
+                
+                // If localStorage is empty, use file data
+                if (this.products.length === 0) {
+                    this.products = data.products || [];
+                    this.categories = data.categories || [];
+                    this.save();
+                }
+                
+                console.log("Données chargées depuis le fichier JSON.");
+            }
+        } catch (e) {
+            console.log("Aucun fichier database.json trouvé ou erreur de chargement. Utilisation du stockage local.");
+        }
+    },
+
+    exportData() {
+        const data = {
+            products: this.products,
+            categories: this.categories
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'database.json';
+        a.click();
+        URL.revokeObjectURL(url);
     }
 };
 
@@ -278,11 +312,12 @@ function addVariantField(size = '', price = '', image = '') {
             </div>
             <div class="form-group">
                 <label class="form-label">Upload</label>
-                <input type="file" class="form-control var-img" accept="image/*">
+                <input type="file" class="form-control var-img" accept="image/*" 
+                    onchange="const pathInput = this.closest('.variant-row').querySelector('.var-path'); if(!pathInput.value) pathInput.value = 'products/' + this.files[0].name">
             </div>
             <div class="form-group">
                 <label class="form-label">Ou Chemin (Path)</label>
-                <input type="text" class="form-control var-path" value="${isPath ? image : ''}" placeholder="Ex: img/prod.jpg">
+                <input type="text" class="form-control var-path" value="${isPath ? image : ''}" placeholder="Ex: products/prod.jpg">
             </div>
             <button class="btn-primary" style="background:#ff4444; margin-bottom:20px;" onclick="document.getElementById('variant-${id}').remove()">X</button>
         </div>
@@ -364,7 +399,10 @@ function deleteProduct(id) {
 }
 
 // --- Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load data from file first
+    await State.init();
+    
     updateCartBadge();
     if (document.getElementById('products-grid')) {
         renderCategories();

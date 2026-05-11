@@ -45,9 +45,13 @@
                 <div class="admin-card" style="background: var(--dark); color: white;">
                     <h3>Bienvenue dans votre administration</h3>
                     <p style="margin-top: 10px; opacity: 0.8;">Ici, vous pouvez gérer vos produits, catégories et prix en toute simplicité.</p>
-                    <div style="margin-top: 30px;">
+                    <div style="margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
                         <a href="edit.html" class="btn-primary" style="text-decoration: none; display: inline-block;">+ Ajouter un Produit</a>
+                        <button class="btn-primary" style="background: #007bff; border-color: #007bff;" onclick="State.exportData()">💾 Exporter les données (JSON)</button>
                     </div>
+                    <p style="margin-top: 15px; font-size: 0.8rem; opacity: 0.7;">
+                        <i class="fa-solid fa-circle-info"></i> Après avoir ajouté vos produits, cliquez sur "Exporter" et enregistrez le fichier sous le nom <strong>database.json</strong> dans votre dossier de projet pour les rendre publics.
+                    </p>
                 </div>
             </section>
         </div>
