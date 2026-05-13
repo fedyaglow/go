@@ -83,7 +83,7 @@ function addToCart(productId, sizeIndex) {
         id: Date.now(), // unique instance id
         productId: product.id,
         name: product.name,
-        code: product.code,
+        code: size.code || product.code,
         size: size.size,
         price: size.price,
         image: size.image || product.image
@@ -212,7 +212,7 @@ function renderProducts() {
                 <div class="product-info">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <div class="product-category">${categoryName}</div>
-                        <div class="product-code" style="font-size: 0.75rem; background: var(--gray-200); padding: 2px 8px; border-radius: 4px; font-weight: 600; color: var(--gray-600);">${product.code}</div>
+                        <div class="product-code" id="prod-code-${product.id}" style="font-size: 0.75rem; background: var(--gray-200); padding: 2px 8px; border-radius: 4px; font-weight: 600; color: var(--gray-600);">${defaultSize.code || product.code}</div>
                     </div>
                     <h3 class="product-title">${product.name}</h3>
                     <p class="product-description">${product.description || ''}</p>
@@ -242,8 +242,10 @@ function updateProductDisplay(productId, sizeIndex) {
     const size = product.sizes[sizeIndex];
     const img = document.getElementById(`prod-img-${productId}`);
     const price = document.getElementById(`prod-price-${productId}`);
+    const code = document.getElementById(`prod-code-${productId}`);
     if (img) img.src = size.image;
     if (price) price.innerText = formatPrice(size.price);
+    if (code) code.innerText = size.code || product.code;
     const container = document.querySelector(`.product-card[data-product-id="${productId}"]`);
     const buttons = container.querySelectorAll('.size-btn');
     buttons.forEach((btn, idx) => btn.classList.toggle('active', idx === sizeIndex));
@@ -305,7 +307,7 @@ function deleteCategory(id) {
 }
 
 let variantCount = 0;
-function addVariantField(size = '', price = '', image = '') {
+function addVariantField(size = '', price = '', image = '', code = '') {
     const container = document.getElementById('variants-container');
     const id = ++variantCount;
     const div = document.createElement('div');
@@ -316,29 +318,50 @@ function addVariantField(size = '', price = '', image = '') {
     const isPath = image && !image.startsWith('data:');
     
     div.innerHTML = `
-        <div class="row" style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap:10px; align-items:end;">
+        <button class="remove-variant-btn" onclick="document.getElementById('variant-${id}').remove()">×</button>
+        <div class="variant-grid">
             <div class="form-group">
-                <label class="form-label">Taille</label>
-                <input type="text" class="form-control var-size" value="${size}" placeholder="Ex: 50ml">
+                <label class="form-label">Taille (الحجم)</label>
+                <input type="text" class="form-control var-size" value="${size}" placeholder="Ex: 50ml, XL, etc.">
             </div>
             <div class="form-group">
-                <label class="form-label">Prix (€)</label>
-                <input type="number" class="form-control var-price" value="${price}" placeholder="0.00">
+                <label class="form-label">Prix (السعر) €</label>
+                <input type="number" step="0.01" class="form-control var-price" value="${price}" placeholder="0.00">
             </div>
             <div class="form-group">
-                <label class="form-label">Upload</label>
+                <label class="form-label">Code / SKU (الرمز)</label>
+                <input type="text" class="form-control var-code" value="${code}" placeholder="P001-S">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Image (الصورة)</label>
                 <input type="file" class="form-control var-img" accept="image/*" 
-                    onchange="const pathInput = this.closest('.variant-row').querySelector('.var-path'); if(!pathInput.value) pathInput.value = 'products/' + this.files[0].name">
+                    onchange="previewVariantImage(this, ${id})">
             </div>
             <div class="form-group">
-                <label class="form-label">Ou Chemin (Path)</label>
-                <input type="text" class="form-control var-path" value="${isPath ? image : ''}" placeholder="Ex: products/prod.jpg">
+                <label class="form-label">Ou Chemin (أو مسار الصورة)</label>
+                <input type="text" class="form-control var-path" value="${isPath ? image : ''}" placeholder="products/prod.jpg">
             </div>
-            <button class="btn-primary" style="background:#ff4444; margin-bottom:20px;" onclick="document.getElementById('variant-${id}').remove()">X</button>
         </div>
-        ${image ? `<div style="margin-top:10px;"><img src="${image}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;" class="current-var-img"></div>` : ''}
+        <div id="preview-container-${id}" style="margin-top:10px;">
+            ${image ? `<img src="${image}" class="variant-image-preview current-var-img">` : ''}
+        </div>
     `;
     container.appendChild(div);
+}
+
+function previewVariantImage(input, id) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const container = document.getElementById(`preview-container-${id}`);
+            container.innerHTML = `<img src="${e.target.result}" class="variant-image-preview current-var-img">`;
+            
+            // Auto-fill path if empty for reference
+            const pathInput = input.closest('.variant-row').querySelector('.var-path');
+            if(!pathInput.value) pathInput.value = 'products/' + input.files[0].name;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
 }
 
 async function saveProduct() {
@@ -354,9 +377,10 @@ async function saveProduct() {
     for (let row of variantRows) {
         const sizeVal = row.querySelector('.var-size').value;
         const priceVal = row.querySelector('.var-price').value;
+        const codeVal = row.querySelector('.var-code').value;
         const imgInput = row.querySelector('.var-img');
         const pathInput = row.querySelector('.var-path').value.trim();
-        const currentImgElement = row.nextElementSibling?.querySelector('.current-var-img');
+        const currentImgElement = row.querySelector('.current-var-img');
         const currentImg = currentImgElement ? currentImgElement.src : '';
         
         let finalImage = pathInput || currentImg;
@@ -367,7 +391,7 @@ async function saveProduct() {
         }
         
         if (sizeVal && priceVal) {
-            sizes.push({ size: sizeVal, price: priceVal, image: finalImage });
+            sizes.push({ size: sizeVal, price: priceVal, image: finalImage, code: codeVal });
         }
     }
     if (sizes.length === 0) return alert("Veuillez remplir correctement les données des tailles.");
@@ -452,7 +476,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('prod-desc').value = product.description || '';
             adminRenderCategories();
             document.getElementById('prod-cat').value = product.categoryId;
-            product.sizes.forEach(s => addVariantField(s.size, s.price, s.image));
+            product.sizes.forEach(s => addVariantField(s.size, s.price, s.image, s.code));
         }
     } else if (document.getElementById('edit-product-title')) {
         adminRenderCategories();

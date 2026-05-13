@@ -10,7 +10,9 @@
 <body class="bg-light">
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="logo">🌸 Fedya Glow</a>
+            <a href="index.html" class="logo">
+                <img src="fedya_glow_logo_1778604528495.png" alt="Fedya Glow Logo" class="logo-img">
+            </a>
             <div class="nav-links">
                 <a href="index.html" class="nav-link">Accueil</a>
                 <a href="produits.html" class="nav-link">Boutique</a>
@@ -30,31 +32,31 @@
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="form-group">
-                        <label class="form-label">Nom du Produit</label>
+                        <label class="form-label">Nom du Produit (اسم المنتج)</label>
                         <input type="text" id="prod-name" class="form-control" placeholder="Ex: Parfum Rose">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Code Produit (SKU)</label>
+                        <label class="form-label">Code Produit (رمز المنتج)</label>
                         <input type="text" id="prod-code" class="form-control" placeholder="P001">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Catégorie</label>
+                    <label class="form-label">Catégorie (الفئة)</label>
                     <select id="prod-cat" class="form-control">
                         <!-- Categories will be injected here -->
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Description du Produit</label>
+                    <label class="form-label">Description du Produit (وصف المنتج)</label>
                     <textarea id="prod-desc" class="form-control" rows="4" placeholder="Décrivez votre produit ici..."></textarea>
                 </div>
 
                 <div style="margin-top: 40px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="margin: 0;">Tailles et Prix</h3>
-                        <button class="btn-primary" style="background: var(--dark); padding: 8px 20px;" onclick="addVariantField()">+ Ajouter une taille</button>
+                        <h3 style="margin: 0;">Tailles et Prix (الأحجام والأسعار)</h3>
+                        <button class="btn-primary" style="background: var(--dark); padding: 8px 20px;" onclick="addVariantField()">+ Ajouter une taille (إضافة حجم)</button>
                     </div>
                     
                     <div id="variants-container">
