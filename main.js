@@ -1,16 +1,68 @@
 // --- Fedya Glow Core Logic (French Version) ---
 
-// State Management
+function safeParseLocal(key) {
+    try {
+        const data = JSON.parse(localStorage.getItem(key));
+        return Array.isArray(data) ? data : [];
+    } catch(e) { return []; }
+}
+
+const DB = {
+    initDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('fedyaDB', 1);
+            request.onupgradeneeded = (e) => e.target.result.createObjectStore('store');
+            request.onsuccess = (e) => resolve(e.target.result);
+            request.onerror = (e) => reject(e);
+        });
+    },
+    async get(key) {
+        try {
+            const db = await this.initDB();
+            return new Promise((resolve) => {
+                const tx = db.transaction('store', 'readonly');
+                const store = tx.objectStore('store');
+                const req = store.get(key);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => resolve(null);
+            });
+        } catch(e) { return null; }
+    },
+    async set(key, value) {
+        try {
+            const db = await this.initDB();
+            return new Promise((resolve) => {
+                const tx = db.transaction('store', 'readwrite');
+                const store = tx.objectStore('store');
+                const req = store.put(value, key);
+                req.onsuccess = () => resolve(true);
+                req.onerror = () => resolve(false);
+            });
+        } catch(e) { return false; }
+    }
+};
+
 const State = {
-    categories: JSON.parse(localStorage.getItem('fedya_categories')) || [],
-    products: JSON.parse(localStorage.getItem('fedya_products')) || [],
-    cart: JSON.parse(localStorage.getItem('fedya_cart')) || [],
+    categories: [],
+    products: [],
+    cart: [],
     activeCategory: 'all',
     
-    save() {
-        localStorage.setItem('fedya_categories', JSON.stringify(this.categories));
-        localStorage.setItem('fedya_products', JSON.stringify(this.products));
-        localStorage.setItem('fedya_cart', JSON.stringify(this.cart));
+    async loadLocal() {
+        const localCats = await DB.get('fedya_categories');
+        this.categories = localCats ? localCats : safeParseLocal('fedya_categories');
+        
+        const localProds = await DB.get('fedya_products');
+        this.products = localProds ? localProds : safeParseLocal('fedya_products');
+        
+        const localCart = await DB.get('fedya_cart');
+        this.cart = localCart ? localCart : safeParseLocal('fedya_cart');
+    },
+    
+    async save() {
+        await DB.set('fedya_categories', this.categories);
+        await DB.set('fedya_products', this.products);
+        await DB.set('fedya_cart', this.cart);
     },
 
     async init() {
@@ -21,12 +73,17 @@ const State = {
                 const data = await response.json();
                 
                 if (data.products && data.products.length > 0) {
-                    this.products = data.products;
-                    this.categories = data.categories || [];
-                    // We don't necessarily save to localStorage here to avoid 
-                    // overwriting admin's local drafts if they are working on them,
-                    // but for regular users, this is the data they see.
-                    console.log("Données chargées avec succès depuis le serveur.");
+                    const isDraft = localStorage.getItem('fedya_admin_draft') === 'true';
+                    
+                    if (!isDraft) {
+                        this.products = data.products;
+                        this.categories = data.categories || [];
+                        await DB.set('fedya_products', this.products);
+                        await DB.set('fedya_categories', this.categories);
+                        console.log("Données chargées avec succès depuis le serveur.");
+                    } else {
+                        console.log("Brouillon local actif. Les modifications non exportées sont conservées.");
+                    }
                 }
             }
         } catch (e) {
@@ -46,6 +103,9 @@ const State = {
         a.download = 'database.json';
         a.click();
         URL.revokeObjectURL(url);
+        
+        // Clear draft status since we exported the data
+        localStorage.removeItem('fedya_admin_draft');
     }
 };
 
@@ -72,47 +132,87 @@ function toggleCart() {
     renderCart();
 }
 
-function addToCart(productId, sizeIndex) {
+async function addToCart(event, productId, sizeIndex) {
     const product = State.products.find(p => p.id == productId);
     if (!product) return;
     
     const size = product.sizes[sizeIndex];
+    const itemCode = size.code || product.code;
     
-    // Add item to cart
-    State.cart.push({
-        id: Date.now(), // unique instance id
-        productId: product.id,
-        name: product.name,
-        code: size.code || product.code,
-        size: size.size,
-        price: size.price,
-        image: size.image || product.image
-    });
+    // Check if item already exists in cart with same product and size
+    const existingItem = State.cart.find(item => item.productId == product.id && item.size == size.size);
     
-    State.save();
+    if (existingItem) {
+        existingItem.quantity = (existingItem.quantity || 1) + 1;
+    } else {
+        State.cart.push({
+            id: Date.now(), // unique instance id
+            productId: product.id,
+            name: product.name,
+            code: itemCode,
+            size: size.size,
+            price: size.price,
+            image: size.image || product.image,
+            quantity: 1
+        });
+    }
+    
+    await State.save();
     updateCartBadge();
     
     // Feedback
-    const btn = event.currentTarget;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = "✅ Ajouté";
-    btn.style.background = "#25D366";
-    setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.style.background = "";
-    }, 2000);
+    let btn = null;
+    if (event) {
+        btn = event.currentTarget || (event.target ? event.target.closest('.add-to-cart-btn') : null);
+    }
+    
+    if (btn) {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "✅ Ajouté";
+        btn.style.background = "#25D366";
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = "";
+        }, 2000);
+    }
 }
 
-function removeFromCart(instanceId) {
+async function removeFromCart(instanceId) {
     State.cart = State.cart.filter(item => item.id !== instanceId);
-    State.save();
+    await State.save();
     renderCart();
     updateCartBadge();
 }
 
+async function changeQuantity(instanceId, delta) {
+    const item = State.cart.find(i => i.id == instanceId);
+    if (item) {
+        item.quantity = (item.quantity || 1) + delta;
+        if (item.quantity <= 0) {
+            await removeFromCart(instanceId);
+            return;
+        }
+        await State.save();
+        renderCart();
+        updateCartBadge();
+    }
+}
+
 function updateCartBadge() {
     const badges = document.querySelectorAll('.cart-count');
-    badges.forEach(b => b.innerText = State.cart.length);
+    if (!Array.isArray(State.cart)) State.cart = [];
+    
+    const totalItems = State.cart.reduce((sum, item) => sum + parseInt(item.quantity || 1, 10), 0);
+    
+    badges.forEach(b => {
+        b.innerText = totalItems;
+        // Make sure it's visible
+        b.style.display = 'flex';
+        
+        // Add animation class
+        b.classList.add('badge-pop');
+        setTimeout(() => b.classList.remove('badge-pop'), 300);
+    });
 }
 
 function renderCart() {
@@ -127,15 +227,23 @@ function renderCart() {
     
     let total = 0;
     container.innerHTML = State.cart.map(item => {
-        total += parseFloat(item.price);
+        const qty = item.quantity || 1;
+        total += parseFloat(item.price) * qty;
         return `
             <div class="cart-item">
                 <img src="${item.image}" class="cart-item-img">
                 <div class="cart-item-info">
                     <div class="cart-item-title">${item.name}</div>
                     <div class="cart-item-variant">${item.size} | ${item.code}</div>
-                    <div class="cart-item-price">${formatPrice(item.price)}</div>
-                    <button class="remove-item" onclick="removeFromCart(${item.id})">Supprimer</button>
+                    <div class="cart-item-price">${formatPrice(item.price)} x ${qty}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
+                        <div style="display:flex; align-items:center; gap:8px; background:var(--gray-100); padding:2px 8px; border-radius:20px;">
+                            <button onclick="changeQuantity(${item.id}, -1)" style="border:none; background:none; cursor:pointer; font-size:1.2rem; color:var(--primary); padding:0 5px; width:20px; height:20px; display:flex; align-items:center; justify-content:center;">-</button>
+                            <span style="font-weight:600; min-width:20px; text-align:center;">${qty}</span>
+                            <button onclick="changeQuantity(${item.id}, 1)" style="border:none; background:none; cursor:pointer; font-size:1.2rem; color:var(--primary); padding:0 5px; width:20px; height:20px; display:flex; align-items:center; justify-content:center;">+</button>
+                        </div>
+                        <button class="remove-item" onclick="removeFromCart(${item.id})">Supprimer</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -151,17 +259,19 @@ function sendWhatsApp() {
     let total = 0;
     
     State.cart.forEach(item => {
+        const qty = item.quantity || 1;
         message += `Produit: ${item.name}\n`;
         message += `Code: ${item.code}\n`;
         message += `Taille: ${item.size}\n`;
-        message += `Prix: ${formatPrice(item.price)}\n`;
+        message += `Quantité: ${qty}\n`;
+        message += `Prix: ${formatPrice(parseFloat(item.price) * qty)}\n`;
         message += `-------------------\n`;
-        total += parseFloat(item.price);
+        total += parseFloat(item.price) * qty;
     });
     
     message += `\nTotal: ${formatPrice(total)}`;
     
-    const whatsappNumber = "123456789"; 
+    const whatsappNumber = "33695198708"; 
     const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
 }
@@ -227,7 +337,7 @@ function renderProducts() {
                         `).join('')}
                     </div>
                     
-                    <button class="add-to-cart-btn" onclick="addToCart(${product.id}, getSelectedSizeIndex(${product.id}))">
+                    <button class="add-to-cart-btn" onclick="addToCart(event, ${product.id}, getSelectedSizeIndex(${product.id}))">
                         <span>Ajouter au panier</span>
                         <i class="fa-solid fa-cart-plus"></i>
                     </button>
@@ -256,7 +366,8 @@ function getSelectedSizeIndex(productId) {
     if (!container) return 0;
     const activeBtn = container.querySelector('.size-btn.active');
     const buttons = Array.from(container.querySelectorAll('.size-btn'));
-    return buttons.indexOf(activeBtn);
+    const index = buttons.indexOf(activeBtn);
+    return index !== -1 ? index : 0;
 }
 
 // Navbar Scroll Effect
@@ -286,21 +397,23 @@ function adminRenderCategories() {
     }
 }
 
-function addCategory() {
+async function addCategory() {
     const input = document.getElementById('cat-name');
     const name = input.value.trim();
     if (!name) return;
     State.categories.push({ id: Date.now(), name });
-    State.save();
+    await State.save();
+    localStorage.setItem('fedya_admin_draft', 'true');
     input.value = '';
     adminRenderCategories();
 }
 
-function deleteCategory(id) {
+async function deleteCategory(id) {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ? Tous les produits associés seront supprimés.')) {
         State.categories = State.categories.filter(c => c.id != id);
         State.products = State.products.filter(p => p.categoryId != id);
-        State.save();
+        await State.save();
+        localStorage.setItem('fedya_admin_draft', 'true');
         adminRenderCategories();
         adminRenderProducts();
     }
@@ -402,7 +515,8 @@ async function saveProduct() {
     } else {
         State.products.push({ id: Date.now(), name, code, categoryId: catId, description: desc, sizes });
     }
-    State.save();
+    await State.save();
+    localStorage.setItem('fedya_admin_draft', 'true');
     alert("Produit enregistré avec succès !");
     window.location.href = 'admin.html';
 }
@@ -429,16 +543,20 @@ function adminRenderProducts() {
     `).join('');
 }
 
-function deleteProduct(id) {
+async function deleteProduct(id) {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
         State.products = State.products.filter(p => p.id != id);
-        State.save();
+        await State.save();
+        localStorage.setItem('fedya_admin_draft', 'true');
         adminRenderProducts();
     }
 }
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
+    // Load local DB first
+    await State.loadLocal();
+    
     // Load data from file first
     await State.init();
     
@@ -520,7 +638,7 @@ function renderFilteredProducts(filtered) {
                         `).join('')}
                     </div>
                     
-                    <button class="add-to-cart-btn" onclick="addToCart(${product.id}, getSelectedSizeIndex(${product.id}))">
+                    <button class="add-to-cart-btn" onclick="addToCart(event, ${product.id}, getSelectedSizeIndex(${product.id}))">
                         <span>Ajouter au panier</span>
                         <i class="fa-solid fa-cart-plus"></i>
                     </button>

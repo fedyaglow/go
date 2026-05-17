@@ -20,13 +20,17 @@
     <div class="container">
 
         <a href="index.html" class="logo">
-            <img src="fedya_glow_logo_1778604528495.png" class="logo-img">
+            <img src="logo.jpeg" class="logo-img">
         </a>
 
         <div class="nav-links">
             <a href="index.html" class="nav-link">Accueil</a>
             <a href="produits.html" class="nav-link">Boutique</a>
             <a href="#catalogues" class="nav-link">Catalogues</a>
+            <button class="btn-icon" onclick="toggleCart()">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <span class="badge cart-count">0</span>
+            </button>
         </div>
 
     </div>
@@ -36,7 +40,7 @@
 
 <!-- HERO -->
 <section class="hero">
-    <div class="hero-bg" style="background-image:url('hero-bg.png');"></div>
+    <div class="hero-bg" style="background-image:url('hero-bg.jpeg');"></div>
 
     <div class="container">
         <div class="hero-content">
@@ -191,5 +195,39 @@
     </div>
 </footer>
 
+<!-- Floating Buttons -->
+<div class="floating-btn-group">
+    <a href="https://wa.me/33695198708" class="floating-btn btn-wa" target="_blank">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+    <div class="floating-btn btn-cart" onclick="toggleCart()">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span class="badge cart-count">0</span>
+    </div>
+</div>
+
+<!-- Sidebar Cart -->
+<div class="overlay" id="overlay" onclick="toggleCart()"></div>
+<div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+        <h3>Votre Panier 🛍️</h3>
+        <button class="btn-icon" onclick="toggleCart()" style="font-size: 1.2rem;">✕</button>
+    </div>
+    <div class="cart-items" id="cart-items-container">
+        <!-- Items will be injected here -->
+    </div>
+    <div class="cart-footer">
+        <div class="cart-total">
+            <span>Total:</span>
+            <span id="cart-total-amount">0.00 €</span>
+        </div>
+        <button class="checkout-btn" onclick="sendWhatsApp()">
+            Commander via WhatsApp
+            <i class="fa-brands fa-whatsapp"></i>
+        </button>
+    </div>
+</div>
+
+<script src="main.js"></script>
 </body>
 </html>
